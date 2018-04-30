@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
+import loading from './loading.svg';
 import './App.css';
-import MovieList from './MovieList'
-// const TEST_DATA = require('./sample.json');
-// console.log(TEST_DATA);
-
+import MovieList from './MovieList';
+import SearchBar from './SearchBar';
 
 class App extends Component {
 
@@ -14,12 +13,7 @@ class App extends Component {
       movies: [],
       loading: true,
     }
-    // let wait = ms => new Promise(resolve => setTimeout(resolve, ms))
-
   }
-
-  
-
 
   async componentWillMount() {
     this.fetchData();
@@ -31,57 +25,83 @@ class App extends Component {
       movies: [],
       loading: true,
     });
-    const data = await fetch('https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed')
-      // this.wait(2000);
+    let data;
+    try {
+       data = 
+      
+      await fetch('https://api.themoviedb.org/3/movie/now_playing?api_key=a07e22bc18f5cb106bfe4cc1f83ad8ed')
+    
       this.setState({
         movies: [],
         loading: false,
       });
-    
+  
       const response = await data.json();
-      console.log(response);
       const allMovies = response.results;
       this.setState({
         allMovies: allMovies,
         movies: allMovies
       });
+    
+    } catch(e) {
+      this.setState({
+        error: 'Network Error',
+      })
+    }
 
+    
   }
 
-  filterMovies(filterText) {
-    console.log(filterText);
-    const allMovies = this.state.allMovies;
-    const filteredMovies = allMovies.filter(
-      m => (m.title.toLowerCase()).indexOf(filterText.toLowerCase()) != -1
-    )
-    console.log(filteredMovies);
+  filterMovies = (filterMoviesFromSearchBar) => {
     this.setState({
-      movies: filteredMovies,
-    })
+      movies: filterMoviesFromSearchBar,
+    });
   }
+
   render() {
-    // console.log(TEST_DATA);
     return (
-      <div className="App">
+      <div className="App container"
+
+      >
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">Welcome to Flixie</h1>
         </header>
+        {this.state.error &&
+          <div className="alert alert-danger">{this.state.error}</div>
+        }
+          
+        <div
+          style={{
+            display: 'flex',
+          }}
+        >
+          <a
+            href="#"
+            onClick={e => this.fetchData()}
+          >Refresh</a>
+          <SearchBar
+            filterMoviesCallback={this.filterMovies}
+            allMovies={this.state.allMovies} />
+          <div
+            style={{
+              width: '20px',
+              height: '20px',
+            }}
+          >
+            {this.state.loading &&
+              <img src={loading}
+                className="flixie-loading"
+                style={{
+                  width: '100%',
+                }}
+              />
+            }
+          </div>
 
-        <a 
-          href="#" 
-          className="btn btn-primary"
-          onClick={e => this.fetchData()}
-        >Refresh</a>
+        </div>
 
-        {this.state.loading &&
-        <img src={logo} 
-        className="flixie-loading"/>
-      }
-      {/* <img src={logo} 
-        className="flixie-loading"/> */}
-        <input onChange={(node) => this.filterMovies(node.target.value)} />
-        <MovieList movies={this.state.movies}/>
+        <MovieList movies={this.state.movies} />
 
       </div>
     );
